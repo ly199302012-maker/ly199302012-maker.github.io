@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ly199302012-maker.github.io/sitemap.xml
