@@ -107,7 +107,7 @@ scene.add(pts);
 const grid=new THREE.GridHelper(30,60,0x0b4a55,0x07262d); grid.material.transparent=true; grid.material.opacity=.5; scene.add(grid);
 
 // ---- drag to rotate
-let rotY=0, vel=0, drag=false, lx=0, idle=0;
+let rotY=0.7, vel=0, drag=false, lx=0, idle=0;
 const el=renderer.domElement;
 el.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;el.setPointerCapture(e.pointerId);});
 el.addEventListener('pointermove',e=>{ if(!drag)return; const dx=e.clientX-lx; lx=e.clientX; vel=dx*.006; rotY+=vel; idle=0; });
@@ -119,7 +119,7 @@ const clock=new THREE.Clock(); let glitchT=0;
 function tick(){
   const dt=Math.min(clock.getDelta(),.05), t=clock.elapsedTime;
   idle+=dt;
-  if(!drag){ vel*=.94; rotY+=vel; if(idle>2) rotY+= (Math.sin(t*.4)*.9 - rotY)*.01; }
+  if(!drag){ vel*=.94; rotY+=vel; if(idle>2) rotY+= (0.7+Math.sin(t*.4)*.3 - rotY)*.01; }
   holo.rotation.y=rotY;
   holo.position.y=Math.sin(t*1.4)*.04;
   glitchT-=dt; if(Math.random()<.008) glitchT=.18;
