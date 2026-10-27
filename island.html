@@ -110,7 +110,10 @@
   <div class="label">蓝调型男 · 01</div>
   <h1>不止是主页。<br><em>一个自己的世界。</em></h1>
   <p class="sub">西装刺客 · 微信表情创作者的小岛</p>
-  <a class="pill" href="/index.html">← 回到主页</a>
+  <a class="pill" id="homeBtn" href="/index.html">← 回到主页</a>
+  <script>
+  if(window.self!==window.top){var b=document.getElementById('homeBtn');b.textContent='进入主页 ↓';b.addEventListener('click',function(e){e.preventDefault();try{window.parent.document.getElementById('enter').scrollIntoView({behavior:'smooth'});}catch(_){window.top.location.href='/index.html#enter';}});}
+  </script>
 </main>
 <div class="hint" id="hint">拖动旋转 · 双指缩放</div>
 
