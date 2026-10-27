@@ -45,42 +45,37 @@ fitCam();
 const CYAN = new THREE.Color(0x3ff3ff);
 const holo = new THREE.Group(); scene.add(holo);
 
-// ---- character hologram layers
-const tex = new THREE.TextureLoader().load('holo-cike.png');
-tex.colorSpace = THREE.SRGBColorSpace;
-const uniforms = { uTex:{value:tex}, uTime:{value:0}, uColor:{value:CYAN}, uGlitch:{value:0}, uAlpha:{value:1} };
-const holoMat = new THREE.ShaderMaterial({
-  uniforms, transparent:true, depthWrite:false, side:THREE.DoubleSide, blending:THREE.AdditiveBlending,
-  vertexShader:`varying vec2 vUv; varying vec3 vN; varying vec3 vV;
-    void main(){ vUv=uv; vec4 mv=modelViewMatrix*vec4(position,1.); vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
-  fragmentShader:`uniform sampler2D uTex; uniform float uTime; uniform vec3 uColor; uniform float uGlitch; uniform float uAlpha;
-    varying vec2 vUv; varying vec3 vN; varying vec3 vV;
-    float h(float n){return fract(sin(n)*43758.5453);}
-    void main(){
-      vec2 uv=vUv;
-      float band=step(.97,h(floor(uv.y*40.)+floor(uTime*12.)));
-      uv.x+=uGlitch*band*(h(floor(uTime*30.))-.5)*.08;
-      vec4 t=texture2D(uTex,uv);
-      float lum=t.r;
-      float scan=.65+.35*sin(uv.y*420.-uTime*6.);
-      float sweep=smoothstep(.0,.02,abs(fract(uTime*.18)-uv.y))*-.6+1.6;
-      sweep=mix(1.6,1.,smoothstep(0.,.035,abs(fract(uTime*.18)-uv.y)));
-      float flick=.9+.1*sin(uTime*37.)*sin(uTime*13.);
-      float fres=pow(1.-abs(dot(vN,vV)),1.5);
-      vec3 col=uColor*(lum*1.25+.12)*scan*sweep*flick + uColor*fres*.25;
-      float a=t.a*(.55+lum*.6)*uAlpha;
-      gl_FragColor=vec4(col*a,a);
-    }`
-});
-const H=2.6, W=H*800/744;
-const geo=new THREE.PlaneGeometry(W,H);
-const layers=[];
-[0,-0.06,0.06].forEach((z,i)=>{
-  const m=holoMat.clone(); m.uniforms=THREE.UniformsUtils.clone(uniforms); m.uniforms.uTex.value=tex;
-  m.uniforms.uAlpha.value = i===0?1:.28;
-  const p=new THREE.Mesh(geo,m); p.position.set(0,0.35+H/2,z); holo.add(p); layers.push(p);
-});
-
+// ---- character as depth particles (Depth Anything v2 depth map)
+const H=2.6, W=H*520/484;
+function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src;});}
+const [ci,di]=await Promise.all([loadImg('holo-cike.png'),loadImg('holo-cike-depth.png')]);
+function px(img){const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const x=c.getContext('2d');x.drawImage(img,0,0);return x.getImageData(0,0,c.width,c.height).data;}
+const cd=px(ci), dd=px(di), IW=ci.width, IH=ci.height, STEP=2, DEPTH=1.1;
+const P=[], L=[], R=[];
+for(let y=0;y<IH;y+=STEP)for(let x=0;x<IW;x+=STEP){const k=(y*IW+x)*4; if(cd[k+3]<30)continue;
+  const lum=cd[k]/255, d=dd[k]/255;
+  P.push((x/IW-.5)*W+(Math.random()-.5)*.006, .35+(1-y/IH)*H, (d-.5)*DEPTH+(Math.random()-.5)*.02);
+  L.push(lum); R.push(Math.random());}
+const cg=new THREE.BufferGeometry();
+cg.setAttribute('position',new THREE.Float32BufferAttribute(P,3));
+cg.setAttribute('aLum',new THREE.Float32BufferAttribute(L,1));
+cg.setAttribute('aRnd',new THREE.Float32BufferAttribute(R,1));
+const cu={uTime:{value:0},uColor:{value:CYAN},uGlitch:{value:0},uPR:{value:renderer.getPixelRatio()}};
+const charMat=new THREE.ShaderMaterial({uniforms:cu,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`uniform float uTime; uniform float uGlitch; uniform float uPR; attribute float aLum; attribute float aRnd; varying float vL; varying float vA;
+    void main(){ vec3 p=position;
+      float band=step(.96,fract(sin(floor(p.y*30.)+floor(uTime*12.))*43758.5));
+      p.x+=uGlitch*band*(aRnd-.5)*.25;
+      p+=normalize(vec3(aRnd-.5,.2,fract(aRnd*7.)-.5))*.01*sin(uTime*2.+aRnd*30.);
+      vec4 mv=modelViewMatrix*vec4(p,1.);
+      float sweep=1.-smoothstep(0.,.08,abs(fract(uTime*.18)*3.2-(p.y-.2)));
+      vL=aLum; vA=(.35+aLum*.75)*(.85+.15*sin(uTime*37.+aRnd*6.))+sweep*.9;
+      gl_PointSize=(1.6+aLum*1.6+sweep*2.)*uPR*(6./-mv.z);
+      gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`uniform vec3 uColor; varying float vL; varying float vA;
+    void main(){ float r=length(gl_PointCoord-.5); if(r>.5)discard; float a=smoothstep(.5,0.,r)*vA;
+      gl_FragColor=vec4(uColor*(.6+vL*.8)*a,a); }`});
+const charPts=new THREE.Points(cg,charMat); holo.add(charPts);
 // ---- projector base
 const base=new THREE.Group(); scene.add(base);
 const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.4,.18,64), new THREE.MeshBasicMaterial({color:0x061620}));
@@ -124,13 +119,12 @@ const clock=new THREE.Clock(); let glitchT=0;
 function tick(){
   const dt=Math.min(clock.getDelta(),.05), t=clock.elapsedTime;
   idle+=dt;
-  if(!drag){ vel*=.94; rotY+=vel; if(idle>2) rotY+= (Math.sin(t*.5)*.6 - rotY)*.01; }
+  if(!drag){ vel*=.94; rotY+=vel; if(idle>2) rotY+= (Math.sin(t*.4)*.9 - rotY)*.01; }
   holo.rotation.y=rotY;
   holo.position.y=Math.sin(t*1.4)*.04;
   glitchT-=dt; if(Math.random()<.008) glitchT=.18;
   const g=glitchT>0?1:0;
-  layers.forEach((l,i)=>{ l.material.uniforms.uTime.value=t+i*.3; l.material.uniforms.uGlitch.value=g; });
-  layers[1].position.x=g?.05:0; layers[2].position.x=g?-.05:0;
+  cu.uTime.value=t; cu.uGlitch.value=g;
   coneMat.uniforms.uTime.value=t;
   r1.rotation.z=t*.4; ticks.rotation.y=-t*.25; r2.material.opacity=.4+.3*Math.sin(t*3.);
   const p=pg.attributes.position.array;
