@@ -1,3 +1,5 @@
+---
+---
 <!doctype html>
 <html lang="zh-CN">
   <head>
@@ -17,6 +19,12 @@
     <link rel="stylesheet" href="hark-hero.css" />
     <style>
       .x-words { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0; }
+      .x-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+      .x-gallery figure { margin: 0; } .x-gallery img { width: 100%; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; display: block; }
+      .x-gallery figcaption { font-size: 13px; opacity: .7; margin-top: 4px; }
+      .x-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; z-index: 50; background: rgba(20,20,20,.82); backdrop-filter: blur(10px); padding: 8px; border-radius: 999px; }
+      .x-bar a, .x-bar button { color: #fff; background: rgba(255,255,255,.14); border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 14px; text-decoration: none; cursor: pointer; }
+      body { padding-bottom: 70px; }
     </style>
     <script type="application/ld+json">
       {
@@ -65,7 +73,7 @@
       <header class="nav glass" data-auto></header>
       <main class="main">
         <section class="hero">
-          <img class="hero__img" src="banner.jpg" alt="四个穿黑西装的卡通西装刺客帅哥" />
+          <img class="hero__img" src="{{ site.data.site.hero_image | relative_url }}" alt="四个穿黑西装的卡通西装刺客帅哥" />
           <div class="hero__copy">
             <p class="hero__eyebrow">微信表情创作者主页</p>
             <h1>蓝调型男 · 西装刺客</h1>
@@ -106,16 +114,27 @@
             <div class="stat"><span class="stat__fig">约 8 天</span><span class="stat__label">上架时长</span></div>
           </section>
           <p class="fineprint">数据截至 2026-10-23。这套表情获得了微信表情平台红包封面激励。</p>
-          <div class="prose"><p><strong>新作预览：「蓝调Boy打工人」</strong>，打工人的日常吐槽与情绪，微信表情搜「蓝调Boy打工人」即可添加。</p></div>
+          <div class="prose"><p><strong>新作预览：「{{ site.data.site.featured_title }}」</strong>，微信表情搜「{{ site.data.site.featured_title }}」即可添加。</p></div>
           <figure class="band">
-            <img src="preview-dagong.jpg" alt="蓝调Boy打工人表情预览：16 个西装打工人表情及文字" />
-            <figcaption>「蓝调Boy打工人」16 个表情预览</figcaption>
+            <img src="{{ site.data.site.featured_image | relative_url }}" alt="{{ site.data.site.featured_caption }}" />
+            <figcaption>{{ site.data.site.featured_caption }}</figcaption>
           </figure>
           <div class="prose"><p>表情含义词：</p></div>
           <ul class="x-words">
             <li class="pill">打卡上班</li><li class="pill">拿捏了</li><li class="pill">收到</li><li class="pill">下班了</li><li class="pill">勿扰</li><li class="pill">让我想想</li><li class="pill">在吗</li><li class="pill">已读</li><li class="pill">被治愈了</li><li class="pill">加班中</li><li class="pill">摸鱼</li><li class="pill">老板好</li><li class="pill">累瘫</li><li class="pill">晚安</li><li class="pill">辛苦了</li><li class="pill">红包拿来</li>
           </ul>
         </section>
+
+        {% if site.data.site.gallery and site.data.site.gallery.size > 0 %}
+        <section class="section" id="gallery" data-nav="照片墙">
+          <div class="head"><p class="head__eyebrow">照片墙</p><h2>更多作品与照片。</h2></div>
+          <div class="x-gallery">
+            {% for g in site.data.site.gallery %}{% if g.image %}
+            <figure><img src="{{ g.image | relative_url }}" alt="{{ g.caption }}" loading="lazy" />{% if g.caption %}<figcaption>{{ g.caption }}</figcaption>{% endif %}</figure>
+            {% endif %}{% endfor %}
+          </div>
+        </section>
+        {% endif %}
 
         <section class="section" id="series" data-nav="作品">
           <div class="head">
@@ -210,8 +229,14 @@
             </div>
             <aside class="callout" aria-label="联系方式">
               <p class="callout__head">联系作者</p>
-              <p class="callout__lead"><strong>发邮件说明需求。</strong>ly199302012@gmail.com</p>
-              <a class="btn" href="mailto:ly199302012@gmail.com">发送邮件</a>
+              {% assign c = site.data.site.contacts %}
+              {% if c.email %}<p class="callout__lead"><strong>邮箱</strong> {{ c.email }}</p>{% endif %}
+              {% if c.wechat %}<p class="callout__lead"><strong>微信</strong> {{ c.wechat }}</p>{% endif %}
+              {% if c.qq %}<p class="callout__lead"><strong>QQ</strong> {{ c.qq }}</p>{% endif %}
+              {% if c.phone %}<p class="callout__lead"><strong>电话</strong> {{ c.phone }}</p>{% endif %}
+              {% if c.xiaohongshu %}<p class="callout__lead"><strong>小红书</strong> {{ c.xiaohongshu }}</p>{% endif %}
+              {% if c.douyin %}<p class="callout__lead"><strong>抖音</strong> {{ c.douyin }}</p>{% endif %}
+              {% if c.email %}<a class="btn" href="mailto:{{ c.email }}">发送邮件</a>{% endif %}
             </aside>
           </div>
         </section>
@@ -249,6 +274,13 @@
         >
       </footer>
     </div>
+    {% assign c = site.data.site.contacts %}
+    <nav class="x-bar" aria-label="快速联系">
+      {% if c.wechat %}<button type="button" onclick="navigator.clipboard.writeText('{{ c.wechat }}');this.textContent='微信号已复制'">微信</button>{% endif %}
+      {% if c.qq %}<a href="https://wpa.qq.com/msgrd?v=3&uin={{ c.qq }}&site=qq&menu=yes">QQ</a>{% endif %}
+      {% if c.phone %}<a href="tel:{{ c.phone }}">电话</a>{% endif %}
+      {% if c.email %}<a href="mailto:{{ c.email }}">邮件</a>{% endif %}
+    </nav>
     <script src="hark.js"></script>
   </body>
 </html>
