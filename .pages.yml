@@ -1,0 +1,55 @@
+media:
+  input: images
+  output: /images
+content:
+  - name: site
+    label: 主页内容
+    type: file
+    path: _data/site.yml
+    format: yaml
+    fields:
+      - name: hero_image
+        label: 顶部大图
+        type: image
+      - name: featured_title
+        label: 代表作名称
+        type: string
+      - name: featured_image
+        label: 代表作预览图
+        type: image
+      - name: featured_caption
+        label: 预览图说明
+        type: string
+      - name: gallery
+        label: 照片墙
+        type: object
+        list: true
+        fields:
+          - name: image
+            label: 照片
+            type: image
+          - name: caption
+            label: 说明
+            type: string
+      - name: contacts
+        label: 联系方式（留空就不显示）
+        type: object
+        fields:
+          - name: email
+            label: 邮箱
+            type: string
+          - name: wechat
+            label: 微信号
+            type: string
+          - name: qq
+            label: QQ
+            type: string
+          - name: phone
+            label: 电话
+            type: string
+          - name: xiaohongshu
+            label: 小红书号
+            type: string
+          - name: douyin
+            label: 抖音号
+            type: string
