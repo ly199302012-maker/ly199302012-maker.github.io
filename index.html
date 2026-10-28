@@ -309,13 +309,13 @@
     <script src="hark.js"></script>
 
 <style>
-#bgm-btn{position:fixed;top:14px;right:14px;z-index:60;width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:radial-gradient(circle,#c9a227 0 18%,#111 19% 100%);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;padding:0}
+#bgm-btn{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));right:16px;z-index:9999;width:56px;height:56px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:radial-gradient(circle,#c9a227 0 18%,#111 19% 100%);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;padding:0}
 #bgm-btn::after{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(255,255,255,.18)}
 #bgm-btn.on{animation:bgmspin 3s linear infinite}
-#bgm-tip{position:fixed;top:66px;right:10px;z-index:60;font-size:11px;color:#fff;background:rgba(20,20,20,.8);padding:4px 8px;border-radius:10px;transition:opacity .4s}
+#bgm-tip{position:fixed;bottom:calc(140px + env(safe-area-inset-bottom));right:10px;z-index:9999;font-size:11px;color:#fff;background:rgba(20,20,20,.8);padding:4px 8px;border-radius:10px;transition:opacity .4s}
 @keyframes bgmspin{to{transform:rotate(360deg)}}
 </style>
-<button id="bgm-btn" aria-label="背景音乐"></button>
+<button id="bgm-btn" aria-label="背景音乐"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#111;font-size:14px;font-weight:700">♪</span></button>
 <div id="bgm-tip">♪ 点唱片听音乐</div>
 <audio id="bgm" src="bgm.mp3" loop preload="none"></audio>
 <script>
