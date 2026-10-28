@@ -307,5 +307,21 @@
       {% if c.email %}<a href="mailto:{{ c.email }}">邮件</a>{% endif %}
     </nav>
     <script src="hark.js"></script>
+
+<style>
+#bgm-btn{position:fixed;top:14px;right:14px;z-index:60;width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:radial-gradient(circle,#c9a227 0 18%,#111 19% 100%);box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;padding:0}
+#bgm-btn::after{content:"";position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(255,255,255,.18)}
+#bgm-btn.on{animation:bgmspin 3s linear infinite}
+#bgm-tip{position:fixed;top:66px;right:10px;z-index:60;font-size:11px;color:#fff;background:rgba(20,20,20,.8);padding:4px 8px;border-radius:10px;transition:opacity .4s}
+@keyframes bgmspin{to{transform:rotate(360deg)}}
+</style>
+<button id="bgm-btn" aria-label="背景音乐"></button>
+<div id="bgm-tip">♪ 点唱片听音乐</div>
+<audio id="bgm" src="bgm.mp3" loop preload="none"></audio>
+<script>
+(function(){var a=document.getElementById('bgm'),b=document.getElementById('bgm-btn'),t=document.getElementById('bgm-tip');a.volume=.45;
+b.onclick=function(){if(a.paused){a.play();b.classList.add('on');t.textContent='Smooth Lovin · Kevin MacLeod (CC BY 4.0)';}else{a.pause();b.classList.remove('on');t.textContent='♪ 已暂停';}t.style.opacity=1;clearTimeout(b._t);b._t=setTimeout(function(){t.style.opacity=0},3000);};
+setTimeout(function(){if(a.paused)t.style.opacity=0},6000);})();
+</script>
   </body>
 </html>
