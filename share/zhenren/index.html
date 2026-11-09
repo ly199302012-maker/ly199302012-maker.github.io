@@ -267,7 +267,7 @@
         <button class="x-act" id="act-quote" type="button">✨ 抽金句</button>
         <button class="x-act" id="act-praise" type="button">❤ 夸他</button>
         <button class="x-act" id="act-tie" type="button">💢 扯领带</button>
-        <button class="x-act x-act--voice" id="act-voice" type="button" aria-pressed="false" aria-label="朗读">🔊 朗读</button>
+        <button class="x-act x-act--voice" id="act-voice" type="button" aria-pressed="true" aria-label="朗读">🔊 朗读</button>
       </div>
 
       <form class="x-chat" id="chat" autocomplete="off">
@@ -316,7 +316,7 @@
         var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
         var rand = function (a, b) { return a + Math.random() * (b - a); };
 
-        var state = { cur: 0, love: 0, pokeGain: [], pokes: [], finale: false, voice: false, unlocked: {} };
+        var state = { cur: 0, love: 0, pokeGain: [], pokes: [], finale: false, voice: true, unlocked: {} };
         SCENES.forEach(function (s, i) { if (!s.need) state.unlocked[i] = true; });
 
         function layers() {
@@ -407,8 +407,16 @@
           voice = male[0] || pool[0] || null;
         }
         if ("speechSynthesis" in window) { chooseVoice(); speechSynthesis.onvoiceschanged = chooseVoice; }
+        var VOICE_MAP = {"……再说一遍，我没听清。": "voice/v00.mp3", "……嗯，继续夸。": "voice/v01.mp3", "……行吧，让你戳。": "voice/v02.mp3", "今天的目标：让你多看我一眼。": "voice/v03.mp3", "你是不是想挨收拾？": "voice/v04.mp3", "你继续，我在听。": "voice/v05.mp3", "再戳就把你绑走。": "voice/v06.mp3", "再戳我就生气了。": "voice/v07.mp3", "别问，问就是在想你。": "voice/v08.mp3", "别靠太近，会上瘾。": "voice/v09.mp3", "刺客从不失手，除了对你。": "voice/v10.mp3", "去睡吧，我守着。": "voice/v11.mp3", "哼，眼光不错。": "voice/v12.mp3", "嗯，我知道。": "voice/v13.mp3", "嗯？": "voice/v14.mp3", "嗯？找我有事？": "voice/v15.mp3", "够了啊，西装很贵的。": "voice/v16.mp3", "干嘛？": "voice/v17.mp3", "想我就多看两眼，不收费。": "voice/v18.mp3", "我不是冷，是在等对的人。": "voice/v19.mp3", "我只对你一个人营业。": "voice/v20.mp3", "戳我要收费的。": "voice/v21.mp3", "手往哪放呢。": "voice/v22.mp3", "扯坏了你负责系回去。": "voice/v23.mp3", "早。咖啡我已经点好了。": "voice/v24.mp3", "晚安。梦里也穿西装见你。": "voice/v25.mp3", "朗读已开启。": "voice/v26.mp3", "松手。领带是给你看的，不是给你扯的。": "voice/v27.mp3", "生活很难，所以西装要合身。": "voice/v28.mp3", "知道了，今晚请你吃饭。": "voice/v29.mp3", "知道了，别到处说。": "voice/v30.mp3", "胆子不小啊。": "voice/v31.mp3", "西装可以租，气场租不到。": "voice/v32.mp3", "西装帅，人更帅。": "voice/v33.mp3", "说重点。": "voice/v34.mp3", "谁惹你了？名字报上来。": "voice/v35.mp3", "走，我请。不许跟我抢单。": "voice/v36.mp3", "起这么早，是想我了？": "voice/v37.mp3", "过来，肩膀借你。": "voice/v38.mp3", "这话我记下了。": "voice/v39.mp3", "这还用你说？": "voice/v40.mp3", "这还用说？": "voice/v41.mp3", "迟到的人没资格让我等。": "voice/v42.mp3", "领带系紧，心也系紧。": "voice/v43.mp3"};
+        var curAudio = null;
         function speak(line) {
-          if (!state.voice || !("speechSynthesis" in window)) return;
+          if (!state.voice) return;
+          if (VOICE_MAP[line]) {
+            try { if (curAudio) curAudio.pause(); if ("speechSynthesis" in window) speechSynthesis.cancel();
+              curAudio = new Audio(VOICE_MAP[line]); curAudio.play().catch(function(){}); } catch (e) {}
+            return;
+          }
+          if (!("speechSynthesis" in window)) return;
           try {
             speechSynthesis.cancel();
             var u = new SpeechSynthesisUtterance(line);
@@ -420,9 +428,9 @@
         $("act-voice").addEventListener("click", function () {
           state.voice = !state.voice;
           this.setAttribute("aria-pressed", state.voice);
-          if (!("speechSynthesis" in window)) { toast("这台设备不支持朗读"); return; }
+          
           if (state.voice) { chooseVoice(); speak("朗读已开启。"); toast("朗读已开启"); }
-          else { speechSynthesis.cancel(); toast("朗读已关闭"); }
+          else { if (curAudio) curAudio.pause(); if ("speechSynthesis" in window) speechSynthesis.cancel(); toast("朗读已关闭"); }
         });
 
         /* ---------- effects ---------- */
